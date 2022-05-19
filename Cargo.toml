@@ -1,7 +1,7 @@
 [package]
-name = "rust-counter-tutorial"
+name = "yeji-swap-contract"
 version = "0.1.0"
-authors = ["NEAR Inc <hello@near.org>"]
+authors = ["YejiSwap Inc <kittipon.jew@gmail.com>"]
 edition = "2018"
 
 [lib]
