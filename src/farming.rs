@@ -1,10 +1,8 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault};
+use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault, Balance};
 
 use crate::farm::Farm;
-
-
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
@@ -15,19 +13,21 @@ pub struct Farming {
 
 #[near_bindgen]
 impl Farming {
-     #[init]
+    #[init]
     pub fn new() -> Self {
         Self {
-            wnear_eth: Farm { 
+            wnear_eth: Farm {
                 pool_name: "wnear_eth".to_string(),
-                farmer_balance_list: UnorderedMap::new(b"s".to_vec()),
-                add_farm_date: UnorderedMap::new(b"s".to_vec()),
-                pool_amount: 0 },
-            wnear_wbtc: Farm { 
-                pool_name: "wnear_eth".to_string(),
-                farmer_balance_list: UnorderedMap::new(b"s".to_vec()),
-                add_farm_date: UnorderedMap::new(b"s".to_vec()),
-                pool_amount: 0 }, 
+                farmer_balance_list: UnorderedMap::new(b"a".to_vec()),
+                add_farm_date: UnorderedMap::new(b"b".to_vec()),
+                pool_amount: 0,
+            },
+            wnear_wbtc: Farm {
+                pool_name: "wnear_wbtc".to_string(),
+                farmer_balance_list: UnorderedMap::new(b"c".to_vec()),
+                add_farm_date: UnorderedMap::new(b"d".to_vec()),
+                pool_amount: 0,
+            },
         }
     }
     // pub fn new(name: String) -> Self {
@@ -51,7 +51,7 @@ impl Farming {
     }
 
     pub fn get_share_of_total_supply(&self, balance: u128) -> u128 {
-        (balance * self.wnear_eth.pool_amount) / 100
+        (balance * 100) / self.wnear_eth.pool_amount
     }
 
     pub fn calculate_reward(&self, ac_id: &AccountId, balance: u128) -> u128 {
@@ -66,14 +66,18 @@ impl Farming {
             Some(s) => s,
             None => 0,
         };
+        env::log((balance).to_string().as_bytes());
         if balance > 0 {
             balance = balance * self.calculate_reward(&account_id, balance);
         }
+        env::log((balance).to_string().as_bytes());
         //add total amount of pool
         self.wnear_eth.pool_amount += amount;
-        self.wnear_eth.add_farm_date
+        self.wnear_eth
+            .add_farm_date
             .insert(&account_id, &env::block_timestamp());
-        self.wnear_eth.farmer_balance_list
+        self.wnear_eth
+            .farmer_balance_list
             .insert(&account_id, &(amount + balance));
     }
 
