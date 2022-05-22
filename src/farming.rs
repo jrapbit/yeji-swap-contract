@@ -1,6 +1,6 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault, Balance};
+use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault};
 
 use crate::farm::Farm;
 
@@ -47,15 +47,21 @@ impl Farming {
     }
 
     pub fn get_farm_duration_year(&self, start_time: u64) -> u128 {
-        (env::block_timestamp() - start_time) as u128 / 3154 * 10 ^ 13
+        let farm_duration = (env::block_timestamp() - start_time) as u128 / 31540000000000000;
+        env::log((env::block_timestamp() - start_time).to_string().as_bytes());
+        env::log(farm_duration.to_string().as_bytes());
+        farm_duration
     }
 
     pub fn get_share_of_total_supply(&self, balance: u128) -> u128 {
         (balance * 100) / self.wnear_eth.pool_amount
     }
+    fn calculate_interest(&self, ac_id: &AccountId, balance: u128) -> u128 {
+        self.get_share_of_total_supply(balance) / 4
+    }
 
     pub fn calculate_reward(&self, ac_id: &AccountId, balance: u128) -> u128 {
-        (self.get_share_of_total_supply(balance) / 4)
+        self.calculate_interest(ac_id, balance)
             * self.get_farm_duration_year(self.get_add_farm_date_by_ac_id(&ac_id))
     }
 
