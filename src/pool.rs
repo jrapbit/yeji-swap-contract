@@ -14,10 +14,11 @@ pub struct Pool {
 #[near_bindgen]
 impl Pool {
     #[init]
-    pub fn new() -> Self {
+    pub fn start() -> Self {
         Self {
                 wnear_eth_eth: 0,
                 wnear_eth_wnear: 0,
         }
     }
 }
+
