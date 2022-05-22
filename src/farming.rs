@@ -1,6 +1,6 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault, Balance};
+use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault};
 
 use crate::farm::Farm;
 
@@ -46,17 +46,28 @@ impl Farming {
         }
     }
 
-    pub fn get_farm_duration_year(&self, start_time: u64) -> u128 {
-        (env::block_timestamp() - start_time) as u128 / 3154 * 10 ^ 13
+    pub fn get_farm_duration_second(&self, start_time: u64) -> u128 {
+        let farm_second = (env::block_timestamp() - start_time) as u128 / 10^9;
+        env::log("farm_second".as_bytes());
+        env::log(farm_second.to_string().as_bytes());
+        farm_second
     }
 
     pub fn get_share_of_total_supply(&self, balance: u128) -> u128 {
-        (balance * 100) / self.wnear_eth.pool_amount
+        let pool_share = (balance) / self.wnear_eth.pool_amount;
+        env::log("pool_share".as_bytes());
+        env::log(pool_share.to_string().as_bytes());
+        pool_share
     }
 
     pub fn calculate_reward(&self, ac_id: &AccountId, balance: u128) -> u128 {
-        (self.get_share_of_total_supply(balance) / 4)
-            * self.get_farm_duration_year(self.get_add_farm_date_by_ac_id(&ac_id))
+        let reward = ((self.get_share_of_total_supply(balance) / 4)
+            * self.get_farm_duration_second(self.get_add_farm_date_by_ac_id(&ac_id)))
+        / 32 * 10^9;
+        env::log("reward".as_bytes());
+        env::log(reward.to_string().as_bytes());
+        reward
+
     }
 
     //--------------------------------------------------------------------------------
@@ -66,10 +77,12 @@ impl Farming {
             Some(s) => s,
             None => 0,
         };
+        env::log("balance before rewarded".as_bytes());
         env::log((balance).to_string().as_bytes());
         if balance > 0 {
             balance = balance * self.calculate_reward(&account_id, balance);
         }
+        env::log("balance after rewarded".as_bytes());
         env::log((balance).to_string().as_bytes());
         //add total amount of pool
         self.wnear_eth.pool_amount += amount;
