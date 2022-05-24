@@ -3,7 +3,7 @@ use std::cmp;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::env::log;
-use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault};
+use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault};
 use num::integer::Roots;
 
 use crate::farm::Farm;
@@ -106,7 +106,7 @@ impl Farming {
     pub fn add_lp_wnear_eth_token(&mut self, amount_wnear: u128, amount_eth: u128) -> u128 {
         if self.wnear_eth_pool.token == 0 {
             //liquidity = Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
-            let liquidity = (amount_eth * amount_wnear).sqrt() - self.minimum_liquidity;
+            let liquidity = (amount_eth * amount_wnear).sqrt();
             self.wnear_eth_pool.amount_token0 += amount_wnear;
             self.wnear_eth_pool.amount_token1 += amount_eth;
             self.wnear_eth_pool.token += liquidity;
@@ -128,7 +128,7 @@ impl Farming {
         }
     }
 
-    pub fn proccess_farming(
+    pub fn process_farming(
         &mut self,
         account_id: AccountId,
         amount_wnear: u128,
@@ -169,7 +169,6 @@ impl Farming {
             Some(s) => s,
             None => 0,
         };
-        self.wnear_eth_farm.pool_amount -= balance;
         self.wnear_eth_farm.add_farm_date.remove(&account_id);
         self.wnear_eth_farm.farmer_balance_list.remove(&account_id);
         balance = balance + self.calculate_reward(&account_id, balance);
@@ -177,6 +176,7 @@ impl Farming {
         let wnear = (balance * self.wnear_eth_pool.amount_token0) / self.wnear_eth_pool.token;
         // amount1 = liquidity.mul(balance1) / _totalSupply;
         let eth = (balance * self.wnear_eth_pool.amount_token1) / self.wnear_eth_pool.token;
+        self.wnear_eth_farm.pool_amount -= balance;
         self.wnear_eth_pool.token -= balance;
         (wnear, eth)
     }
