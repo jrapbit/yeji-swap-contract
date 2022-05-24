@@ -1,0 +1,13 @@
+Add LP
+    1. get amm rate
+    2. token a = token b 
+    3. transfer to yeji wallet
+    4. call function process_farming(
+        &mut self,
+        account_id: AccountId,
+        amount_wnear: u128,
+        amount_eth: u128,
+    )
+Withdraw LP
+    1. call withdraw_farm_to_wnear_eth(&mut self, account_id: AccountId)
+    2. return wnear, eth
