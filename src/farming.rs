@@ -70,9 +70,9 @@ impl Farming {
     }
 
     pub fn get_share_of_total_supply_percent(&self, balance: u128) -> u128 {
-        let share = (balance * u128::pow(10, 3)) / self.wnear_eth_farm.pool_amount;
+        let share = (balance * 1_000) / self.wnear_eth_farm.pool_amount;
         log("share".as_bytes());
-        log(share.to_string().as_bytes());
+        log((share/10).to_string().as_bytes());
         share
     }
     fn calculate_interest_percent(&self, ac_id: &AccountId, balance: u128) -> u128 {
@@ -83,13 +83,13 @@ impl Farming {
     }
 
     pub fn calculate_reward(&self, ac_id: &AccountId, balance: u128) -> u128 {
+        //1 ns = 3.1688087814029E-17 y
         let reward = ((self.calculate_interest_percent(ac_id, balance)
-            * u128::pow(10, 24)
-            * self.get_farm_duration(self.get_add_farm_date_by_ac_id(&ac_id)))
-            / (3154 * u128::pow(10, 13)))
-            * balance
-            / u128::pow(10, 24)
-            * u128::pow(10, 3);
+            * 1_000_000_000
+            * self.get_farm_duration(self.get_add_farm_date_by_ac_id(ac_id)))
+            / (316_880_878_140_290_000)
+            * balance)
+            / (1_000_000_000 * 100);
         env::log("reward".as_bytes());
         env::log(reward.to_string().as_bytes());
         reward
@@ -98,7 +98,11 @@ impl Farming {
     //--------------------------------------------------------------------------------
 
     pub fn get_wnear_eth_k_from_pool(&self) -> (u128, u128, u128) {
-        (self.wnear_eth_pool.amount_token0, self.wnear_eth_pool.amount_token1, self.wnear_eth_pool.constant_k)
+        (
+            self.wnear_eth_pool.amount_token0,
+            self.wnear_eth_pool.amount_token1,
+            self.wnear_eth_pool.constant_k,
+        )
     }
 
     pub fn add_lp_wnear_eth_token(&mut self, amount_wnear: u128, amount_eth: u128) -> u128 {
@@ -116,7 +120,7 @@ impl Farming {
             let liquidity = cmp::min(
                 (amount_wnear * self.wnear_eth_pool.token) / self.wnear_eth_pool.amount_token0,
                 (amount_eth * self.wnear_eth_pool.token) / self.wnear_eth_pool.amount_token1,
-            ) * 2;
+            );
             self.wnear_eth_pool.amount_token0 += amount_wnear;
             self.wnear_eth_pool.amount_token1 += amount_eth;
             self.wnear_eth_pool.token += liquidity;
@@ -126,12 +130,7 @@ impl Farming {
         }
     }
 
-    pub fn process_farming(
-        &mut self,
-        account_id: AccountId,
-        amount_wnear: u128,
-        amount_eth: u128,
-    ) {
+    pub fn process_farming(&mut self, account_id: AccountId, amount_wnear: u128, amount_eth: u128) {
         let liquidity = self.add_lp_wnear_eth_token(amount_wnear, amount_eth);
         self.add_farm(liquidity, account_id)
     }
@@ -141,13 +140,6 @@ impl Farming {
             Some(s) => s,
             None => 0,
         };
-        // env::log("balance before".as_bytes());
-        // env::log((balance).to_string().as_bytes());
-        // if balance > 0 {
-        //     balance = balance + self.calculate_reward(&account_id, balance);
-        // }
-        // env::log("balance after".as_bytes()); // env::log((balance).to_string().as_bytes());
-        //add total amount of pool
         self.wnear_eth_farm.pool_amount += amount;
         self.wnear_eth_farm
             .add_farm_date
@@ -162,19 +154,23 @@ impl Farming {
     }
 
     pub fn withdraw_farm_to_wnear_eth(&mut self, account_id: AccountId) -> (u128, u128) {
+        env::log("pool token".as_bytes());
+        env::log(self.wnear_eth_pool.token.to_string().as_bytes());
         let mut balance = match self.wnear_eth_farm.farmer_balance_list.get(&account_id) {
             Some(s) => s,
             None => 0,
         };
+        balance = balance + self.calculate_reward(&account_id, balance);
         self.wnear_eth_farm.add_farm_date.remove(&account_id);
         self.wnear_eth_farm.farmer_balance_list.remove(&account_id);
-        balance = balance + self.calculate_reward(&account_id, balance);
         // amount0 = liquidity.mul(balance0) / _totalSupply;
         let wnear = (balance * self.wnear_eth_pool.amount_token0) / self.wnear_eth_pool.token;
         // amount1 = liquidity.mul(balance1) / _totalSupply;
         let eth = (balance * self.wnear_eth_pool.amount_token1) / self.wnear_eth_pool.token;
         self.wnear_eth_farm.pool_amount -= balance;
         self.wnear_eth_pool.token -= balance;
+        self.wnear_eth_pool.amount_token0 -= wnear;
+        self.wnear_eth_pool.amount_token1 -= eth;
         tranfer::Contract::ext_tranfer(&account_id, wnear.to_string(), "near".to_string());
         tranfer::Contract::ext_tranfer(&account_id, eth.to_string(), "eth".to_string());
         (wnear, eth)
