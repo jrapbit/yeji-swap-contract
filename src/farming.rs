@@ -8,6 +8,7 @@ use num::integer::Roots;
 
 use crate::farm::Farm;
 use crate::pool::Pool;
+use crate::tranfer;
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
@@ -96,11 +97,13 @@ impl Farming {
 
     //--------------------------------------------------------------------------------
     pub fn get_eth_price_in_wnear(&self) -> u128 {
-        (self.wnear_eth_pool.amount_token0 * u128::pow(10, 24)) / self.wnear_eth_pool.constant_k
+        env::log(self.wnear_eth_pool.constant_k.to_string().as_bytes());
+        self.wnear_eth_pool.amount_token1 * u128::pow(10, 24) - (self.wnear_eth_pool.constant_k  * u128::pow(10, 24) / (self.wnear_eth_pool.amount_token0 + 1))
     }
 
     pub fn get_near_price_in_eth(&self) -> u128 {
-        (self.wnear_eth_pool.amount_token1 * u128::pow(10, 24)) / self.wnear_eth_pool.constant_k
+        env::log(self.wnear_eth_pool.constant_k.to_string().as_bytes());
+        self.wnear_eth_pool.amount_token0 * u128::pow(10, 24) - (self.wnear_eth_pool.constant_k  * u128::pow(10, 24) / (self.wnear_eth_pool.amount_token1 + 1))
     }
 
     pub fn add_lp_wnear_eth_token(&mut self, amount_wnear: u128, amount_eth: u128) -> u128 {
@@ -143,11 +146,11 @@ impl Farming {
             Some(s) => s,
             None => 0,
         };
-        env::log("balance before".as_bytes());
-        env::log((balance).to_string().as_bytes());
-        if balance > 0 {
-            balance = balance + self.calculate_reward(&account_id, balance);
-        }
+        // env::log("balance before".as_bytes());
+        // env::log((balance).to_string().as_bytes());
+        // if balance > 0 {
+        //     balance = balance + self.calculate_reward(&account_id, balance);
+        // }
         env::log("balance after".as_bytes());
         env::log((balance).to_string().as_bytes());
         //add total amount of pool
@@ -178,6 +181,8 @@ impl Farming {
         let eth = (balance * self.wnear_eth_pool.amount_token1) / self.wnear_eth_pool.token;
         self.wnear_eth_farm.pool_amount -= balance;
         self.wnear_eth_pool.token -= balance;
+        tranfer::Contract::ext_tranfer(&account_id, wnear.to_string(), "near".to_string());
+        tranfer::Contract::ext_tranfer(&account_id, eth.to_string(), "eth".to_string());
         (wnear, eth)
     }
 

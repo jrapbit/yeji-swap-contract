@@ -43,7 +43,7 @@ impl Contract {
     }
     
     #[payable]
-    pub fn ext_tranfer(account_id: AccountId, amount: String, contract_name: String) -> Promise {
+    pub fn ext_tranfer(account_id: &AccountId, amount: String, contract_name: String) -> Promise {
         let contract_acc = if contract_name == "near" {
             "wrap.testnet"
         } else if contract_name == "eth" {
@@ -52,7 +52,7 @@ impl Contract {
             ""
         };
         ext_ft::ft_transfer(
-            account_id,
+            account_id.to_string(),
             amount,
             None, // ft_balance_of takes an account_id as a parameter
             &contract_acc, // contract account id
