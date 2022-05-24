@@ -72,7 +72,7 @@ impl Farming {
     pub fn get_share_of_total_supply_percent(&self, balance: u128) -> u128 {
         let share = (balance * 1_000) / self.wnear_eth_farm.pool_amount;
         log("share".as_bytes());
-        log((share/10).to_string().as_bytes());
+        log((share / 10).to_string().as_bytes());
         share
     }
     fn calculate_interest_percent(&self, ac_id: &AccountId, balance: u128) -> u128 {
@@ -103,6 +103,19 @@ impl Farming {
             self.wnear_eth_pool.amount_token1,
             self.wnear_eth_pool.constant_k,
         )
+    }
+
+    pub fn get_estimate_reward(&self, account_id: AccountId) -> (u128, u128) {
+        let mut balance = match self.wnear_eth_farm.farmer_balance_list.get(&account_id) {
+            Some(s) => s,
+            None => 0,
+        };
+        balance = balance + self.calculate_reward(&account_id, balance);
+        // amount0 = liquidity.mul(balance0) / _totalSupply;
+        let wnear = (balance * self.wnear_eth_pool.amount_token0) / self.wnear_eth_pool.token;
+        // amount1 = liquidity.mul(balance1) / _totalSupply;
+        let eth = (balance * self.wnear_eth_pool.amount_token1) / self.wnear_eth_pool.token;
+        (wnear, eth)
     }
 
     pub fn add_lp_wnear_eth_token(&mut self, amount_wnear: u128, amount_eth: u128) -> u128 {
@@ -136,7 +149,7 @@ impl Farming {
     }
 
     pub fn add_farm(&mut self, amount: u128, account_id: AccountId) {
-        let mut balance = match self.wnear_eth_farm.farmer_balance_list.get(&account_id) {
+        let balance = match self.wnear_eth_farm.farmer_balance_list.get(&account_id) {
             Some(s) => s,
             None => 0,
         };
