@@ -95,7 +95,7 @@ impl Farming {
     }
 
     //--------------------------------------------------------------------------------
-    pub fn get_eth_price_in_near(&self) -> u128 {
+    pub fn get_eth_price_in_wnear(&self) -> u128 {
         self.wnear_eth_pool.amount_token0 / self.wnear_eth_pool.constant_k
     }
 
