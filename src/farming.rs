@@ -96,14 +96,9 @@ impl Farming {
     }
 
     //--------------------------------------------------------------------------------
-    pub fn get_eth_price_in_wnear(&self) -> u128 {
-        env::log(self.wnear_eth_pool.constant_k.to_string().as_bytes());
-        self.wnear_eth_pool.amount_token1 * u128::pow(10, 24) - (self.wnear_eth_pool.constant_k  * u128::pow(10, 24) / (self.wnear_eth_pool.amount_token0 + 1))
-    }
 
-    pub fn get_near_price_in_eth(&self) -> u128 {
-        env::log(self.wnear_eth_pool.constant_k.to_string().as_bytes());
-        self.wnear_eth_pool.amount_token0 * u128::pow(10, 24) - (self.wnear_eth_pool.constant_k  * u128::pow(10, 24) / (self.wnear_eth_pool.amount_token1 + 1))
+    pub fn get_wnear_eth_k_from_pool(&self) -> (u128, u128, u128) {
+        (self.wnear_eth_pool.amount_token0, self.wnear_eth_pool.amount_token1, self.wnear_eth_pool.constant_k)
     }
 
     pub fn add_lp_wnear_eth_token(&mut self, amount_wnear: u128, amount_eth: u128) -> u128 {
@@ -151,8 +146,7 @@ impl Farming {
         // if balance > 0 {
         //     balance = balance + self.calculate_reward(&account_id, balance);
         // }
-        env::log("balance after".as_bytes());
-        env::log((balance).to_string().as_bytes());
+        // env::log("balance after".as_bytes()); // env::log((balance).to_string().as_bytes());
         //add total amount of pool
         self.wnear_eth_farm.pool_amount += amount;
         self.wnear_eth_farm
