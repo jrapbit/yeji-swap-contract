@@ -96,11 +96,11 @@ impl Farming {
 
     //--------------------------------------------------------------------------------
     pub fn get_eth_price_in_wnear(&self) -> u128 {
-        self.wnear_eth_pool.amount_token0 / self.wnear_eth_pool.constant_k
+        (self.wnear_eth_pool.amount_token0 * u128::pow(10, 24)) / self.wnear_eth_pool.constant_k
     }
 
     pub fn get_near_price_in_eth(&self) -> u128 {
-        self.wnear_eth_pool.amount_token1 / self.wnear_eth_pool.constant_k
+        (self.wnear_eth_pool.amount_token1 * u128::pow(10, 24)) / self.wnear_eth_pool.constant_k
     }
 
     pub fn add_lp_wnear_eth_token(&mut self, amount_wnear: u128, amount_eth: u128) -> u128 {
