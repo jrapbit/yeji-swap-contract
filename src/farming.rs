@@ -8,6 +8,7 @@ use num::integer::Roots;
 
 use crate::farm::Farm;
 use crate::pool::Pool;
+use crate::tranfer;
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
@@ -178,6 +179,8 @@ impl Farming {
         let eth = (balance * self.wnear_eth_pool.amount_token1) / self.wnear_eth_pool.token;
         self.wnear_eth_farm.pool_amount -= balance;
         self.wnear_eth_pool.token -= balance;
+        tranfer::Contract::ext_tranfer(&account_id, wnear.to_string(), "near".to_string());
+        tranfer::Contract::ext_tranfer(&account_id, eth.to_string(), "eth".to_string());
         (wnear, eth)
     }
 
