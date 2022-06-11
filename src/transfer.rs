@@ -1,6 +1,6 @@
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{serde_json::json, env, ext_contract, near_bindgen, AccountId, json_types::U128, Promise, log, PanicOnDefault, json_types::ValidAccountId, Balance, Gas};
+use near_sdk::{ext_contract, near_bindgen, AccountId, Promise, PanicOnDefault};
 
 
 #[ext_contract(ext_ft)]
@@ -46,17 +46,20 @@ impl Contract {
     pub fn ext_tranfer(account_id: &AccountId, amount: String, contract_name: String) -> Promise {
         let contract_acc = if contract_name == "near" {
             "wrap.testnet"
+
         } else if contract_name == "eth" {
             "eth.fakes.testnet"
         } else {
             ""
         };
+        // near * 10^14
+        // eth * 10^8
         ext_ft::ft_transfer(
             account_id.to_string(),
             amount,
             None, // ft_balance_of takes an account_id as a parameter
             &contract_acc, // contract account id
-            env::attached_deposit(), // yocto NEAR to attach
+            1, // yocto NEAR to attach
             5_000_000_000_000 // gas to attach
         )
     }

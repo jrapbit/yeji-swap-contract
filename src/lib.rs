@@ -1,6 +1,6 @@
 mod farm;
 mod farming;
-mod tranfer;
+mod transfer;
 mod pool;
 
 near_sdk::setup_alloc!();
